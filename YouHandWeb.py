@@ -15,11 +15,11 @@ class AITrainingPage:
         if self.webcamKey not in st.session_state:
             st.session_state[self.webcamKey] = False
 
-        img = Image.open('./tohka.jpeg')
+        img = Image.open('media/modern_dashboard.png')
         FRAME = st.image(img)
 
         if st.session_state[self.webcamKey]:
-            stopWebcam = st.sidebar.button('Stop Webcam')
+            stopWebcam = st.sidebar.button('Close Webcam')
             st.session_state[self.webcamKey] = False
 
             cap = cv2.VideoCapture(0)
@@ -41,7 +41,7 @@ class AITrainingPage:
             if stopWebcam:
                 cap.release()
         else:
-            useWebcam = st.sidebar.button('Use Webcam')
+            useWebcam = st.sidebar.button('Open Webcam')
             st.session_state[self.webcamKey] = True
 
 
