@@ -363,7 +363,7 @@ class HandRecognizer:
                 if self.isCountDown:
                     frame = self.show_count_down(frame)
 
-                imgRGB = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                imgRGB = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
                 imgRGB = cv2.resize(imgRGB, (WIDTH, HEIGHT))
                 self.new_img = ImageTk.PhotoImage(Image.fromarray(imgRGB))
             else:
