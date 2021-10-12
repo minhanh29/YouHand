@@ -1,6 +1,5 @@
 streamlit
 mediapipe
-opencv-python
 scikit-learn
 selenium
 pillow
