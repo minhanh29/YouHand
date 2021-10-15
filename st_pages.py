@@ -107,6 +107,7 @@ class AITrainingPage:
 
 class ControlVideoPage:
     def __init__(self):
+        self.init_key = "control_init_key"
         self.connect_key = "connect_youtube"
         parent_dir = os.path.dirname(os.path.abspath(__file__))
         self.component_path = os.path.join(parent_dir)
@@ -143,6 +144,8 @@ class ControlVideoPage:
         self.commandHandler = CommandHandler(self.command_db, self)
 
     def register_state(self):
+        if self.init_key not in st.init_key:
+            st.session_state[self.init_key] = True
         if self.load_key not in st.session_state:
             st.session_state[self.load_key] = False
         if self.cmd_key not in st.session_state:
@@ -160,6 +163,8 @@ class ControlVideoPage:
         while True:
             processor = webrtc_ctx.video_processor
             if processor is not None:
+                if st.session_state[self.init_key]:
+                    st.session_state[self.init_key] = False
                 try:
                     result = processor.result_queue.get(timeout=0.3)
                     self.commandHandler.handle_prediction(result.preds, result.keypoints)
@@ -198,6 +203,11 @@ class ControlVideoPage:
         if result is None:
             st.sidebar.error("Invalid YouTube video URL. Please try again.")
             return
+
+        if st.session_state[self.init_key]:
+            st.sidebar.error("Please reload the page to connect to new video.")
+            return
+
         st.session_state[self.load_key] = True
         st.session_state[self.cmd_key] = False
         st.session_state[self.payload_key] = get_video_id(self.vid_url)
