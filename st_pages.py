@@ -214,6 +214,7 @@ class ControlVideoPage:
             st.experimental_rerun()
 
     def play(self):
+        print("play")
         st.session_state[self.payload_key] = "0"
         self.enable_cmd()
 
