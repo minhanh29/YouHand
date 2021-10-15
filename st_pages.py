@@ -204,7 +204,7 @@ class ControlVideoPage:
             st.sidebar.error("Invalid YouTube video URL. Please try again.")
             return
 
-        if st.session_state[self.init_key]:
+        if not st.session_state[self.init_key]:
             st.sidebar.error("Please reload the page to connect to new video.")
             return
 
