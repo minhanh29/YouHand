@@ -108,6 +108,7 @@ class AITrainingPage:
 
 class ControlVideoPage:
     def __init__(self):
+        logging.info("Initing")
         self.connect_key = "connect_youtube"
         parent_dir = os.path.dirname(os.path.abspath(__file__))
         self.component_path = os.path.join(parent_dir)
