@@ -1,7 +1,130 @@
+import json
+import os
+import io
 from tinydb import TinyDB, Query
-# from tinydb.storages import JSONStorage, Storage
+from tinydb.storages import Storage
+from typing import Dict, Any, Optional
 # from tinydb.middlewares import CachingMiddleware
 
+
+class MyJSONStorage(Storage):
+    undir_inited = False
+    dir_inited = False
+    com_inited = False
+    undir_db = ""
+    dir_db = ""
+    com_db = ""
+
+    def __init__(self, path: str, create_dirs=False,
+                 encoding=None, access_mode='r+', **kwargs):
+        super().__init__()
+
+        self._mode = access_mode
+        self.kwargs = kwargs
+
+        if "undirected" in path:
+            self.handle_undir(path)
+        elif "directed" in path:
+            self.handle_dir(path)
+        elif "command" in path:
+            self.handle_com(path)
+
+        # with open(path, "r") as f:
+        #     data = json.load(f)
+        #     MyJSONStorage.db = json.dumps(data)
+
+        # # Open the file for reading/writing
+        # # self._handle = open(path, mode=self._mode, encoding=encoding)
+        # self._handle = io.StringIO(MyJSONStorage.db)
+
+    def handle_undir(self, path):
+        self.my_mode = 0
+        if MyJSONStorage.undir_inited:
+            self._handle = io.StringIO(MyJSONStorage.undir_db)
+            return
+
+        MyJSONStorage.undir_inited = True
+        with open(path, "r") as f:
+            data = json.load(f)
+            MyJSONStorage.undir_db = json.dumps(data)
+
+        # Open the file for reading/writing
+        # self._handle = open(path, mode=self._mode, encoding=encoding)
+        self._handle = io.StringIO(MyJSONStorage.undir_db)
+
+    def handle_dir(self, path):
+        self.my_mode = 1
+        if MyJSONStorage.dir_inited:
+            self._handle = io.StringIO(MyJSONStorage.dir_db)
+            return
+
+        MyJSONStorage.dir_inited = True
+        with open(path, "r") as f:
+            data = json.load(f)
+            MyJSONStorage.dir_db = json.dumps(data)
+
+        self._handle = io.StringIO(MyJSONStorage.dir_db)
+
+    def handle_com(self, path):
+        self.my_mode = 2
+        if MyJSONStorage.com_inited:
+            self._handle = io.StringIO(MyJSONStorage.com_db)
+            return
+
+        MyJSONStorage.com_inited = True
+        with open(path, "r") as f:
+            data = json.load(f)
+            MyJSONStorage.com_db = json.dumps(data)
+
+        self._handle = io.StringIO(MyJSONStorage.com_db)
+
+    def close(self) -> None:
+        self._handle.close()
+
+    def read(self) -> Optional[Dict[str, Dict[str, Any]]]:
+        # Get the file size by moving the cursor to the file end and reading
+        # its location
+        self._handle.seek(0, os.SEEK_END)
+        size = self._handle.tell()
+
+        if not size:
+            # File is empty so we return ``None`` so TinyDB can properly
+            # initialize the database
+            return None
+        else:
+            # Return the cursor to the beginning of the file
+            self._handle.seek(0)
+
+            # Load the JSON contents of the file
+            return json.load(self._handle)
+
+    def write(self, data: Dict[str, Dict[str, Any]]):
+        # Move the cursor to the beginning of the file just in case
+        self._handle.seek(0)
+
+        # Serialize the database state using the user-provided arguments
+        serialized = json.dumps(data, **self.kwargs)
+
+        # Write the serialized data to the file
+        try:
+            self._handle.write(serialized)
+        except io.UnsupportedOperation:
+            raise IOError('Cannot write to the database. Access mode is "{0}"'.format(self._mode))
+
+        # Ensure the file has been writtens
+        self._handle.flush()
+
+        # Remove data that is behind the new cursor in case the file has
+        # gotten shorter
+        self._handle.truncate()
+
+        # update the variable
+        if self.my_mode == 0:
+            MyJSONStorage.undir_db = self._handle.getvalue()
+        elif self.my_mode == 1:
+            MyJSONStorage.dir_db = self._handle.getvalue()
+        elif self.my_mode == 2:
+            MyJSONStorage.com_db = self._handle.getvalue()
 
 # class MyMiddleware(CachingMiddleware):
 #     def __init__(self, storage_cls):
@@ -14,20 +137,20 @@ from tinydb import TinyDB, Query
 #         """
 #         # doing nothing
 #         pass
-class DatabaseStorage:
-    undirected = '{"_default": {}}'
-    directed = '{"_default": {}}'
-    command = '{"_default": {}}'
+# class DatabaseStorage:
+#     undirected = '{"_default": {}}'
+#     directed = '{"_default": {}}'
+#     command = '{"_default": {}}'
 
-    @classmethod
-    def load_data(cls):
-        pass
+#     @classmethod
+#     def load_data(cls):
+#         pass
 
 
 class UndirectedDatabase:
     def __init__(self, database_path):
-        self.db = TinyDB(database_path)
-        # self.db = TinyDB(database_path, storage=MyMiddleware(JSONStorage))
+        # self.db = TinyDB(database_path)
+        self.db = TinyDB(database_path, storage=MyJSONStorage)
 
     # change database
     def change_db(self, database_path):
@@ -84,7 +207,8 @@ class UndirectedDatabase:
 
 class DirectedDatabase:
     def __init__(self, database_path):
-        self.db = TinyDB(database_path)
+        # self.db = TinyDB(database_path)
+        self.db = TinyDB(database_path, storage=MyJSONStorage)
 
     # change database
     def change_db(self, database_path):
@@ -150,8 +274,8 @@ class DirectedDatabase:
 
 class DynamicDatabase:
     def __init__(self, database_path):
-        self.db = TinyDB(database_path)
-        # self.db = TinyDB(database_path, storage=MyMiddleware(JSONStorage))
+        # self.db = TinyDB(database_path)
+        self.db = TinyDB(database_path, storage=MyJSONStorage)
 
     # change database
     def change_db(self, database_path):
@@ -207,8 +331,8 @@ class DynamicDatabase:
 
 class MappingDatabase:
     def __init__(self, database_path):
-        self.db = TinyDB(database_path)
-        # self.db = TinyDB(database_path, storage=MyMiddleware(JSONStorage))
+        # self.db = TinyDB(database_path)
+        self.db = TinyDB(database_path, storage=MyJSONStorage)
 
     # change database
     def change_db(self, database_path):

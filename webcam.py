@@ -1,6 +1,7 @@
 import av
 import cv2
 import time
+import math
 import queue
 from typing import NamedTuple
 import streamlit as st
@@ -25,8 +26,25 @@ class AITrainVideoProcessor(VideoProcessorBase):
         self.start_training = False
         self.stop_training = False
         self.is_training = True
+        self.is_count_down = False
         self.new_gesture = "new_gesture"
+        self.startTime = time.time()
         print("create")
+
+    def show_count_down(self, img):
+        duration = time.time() - self.startTime
+        if duration > 3:
+            self.controller.new_gesture = self.new_gesture.lower()
+            self.controller.isPredict = False
+            self.controller.isUpdate = True
+            self.is_count_down = False
+
+        currentSecond = str(3 - int(math.floor(duration)))
+        x = int(img.shape[1]/2)
+        y = int(img.shape[0]/2) + 10
+        cv2.putText(img, currentSecond, (x, y), cv2.FONT_HERSHEY_COMPLEX, 4,
+                    (0, 0, 255), 5)
+        return img
 
     def recv(self, frame: av.VideoFrame):
         timer = cv2.getTickCount()
@@ -34,12 +52,10 @@ class AITrainVideoProcessor(VideoProcessorBase):
         img = cv2.flip(img, 1)
 
         if self.start_training:
-            print("start train")
-            self.controller.new_gesture = self.new_gesture.lower()
-            self.controller.isPredict = False
-            self.controller.isUpdate = True
             self.start_training = False
             self.is_training = True
+            self.is_count_down = True
+            self.startTime = time.time()
 
         if self.stop_training:
             self.stop_training = False
@@ -50,12 +66,13 @@ class AITrainVideoProcessor(VideoProcessorBase):
 
         # controller = st.session_state[self.controller_key]
         img, data = self.controller.detect_keypoints(img)
+        if self.is_count_down:
+            self.show_count_down(img)
         fps = int(cv2.getTickFrequency() / (cv2.getTickCount() - timer))
         cv2.putText(img, f"FPS: {fps}", (5, 30), cv2.FONT_HERSHEY_COMPLEX,
                     1, (0, 255, 0), 2)
 
         return av.VideoFrame.from_ndarray(img, format="bgr24")
-
 
 class Detection(NamedTuple):
     preds: list
@@ -64,10 +81,12 @@ class Detection(NamedTuple):
 
 class ControlVideoProcessor(VideoProcessorBase):
     result_queue: "queue.Queue[Detection]"
+    ended: bool
 
     def __init__(self):
         self.controller = RecognizerController()
         self.result_queue = queue.Queue()
+        self.ended = False
 
     def recv(self, frame: av.VideoFrame):
         timer = cv2.getTickCount()
@@ -84,6 +103,9 @@ class ControlVideoProcessor(VideoProcessorBase):
                     1, (0, 255, 0), 2)
 
         return av.VideoFrame.from_ndarray(img, format="bgr24")
+
+    def on_ended(self):
+        self.ended = True
 
     def enable_cmd(self):
         st.session_state[self.cmd_key] = True

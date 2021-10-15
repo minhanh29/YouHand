@@ -5,8 +5,9 @@ import queue
 import sys
 import numpy as np
 import time
+from ai.graph_util import GestureGraph
 from urllib.parse import urlparse, parse_qs
-from database.database import MappingDatabase
+from database.database import MappingDatabase, UndirectedDatabase, DirectedDatabase
 from webcam import MyWebCamRTC, ControlVideoProcessor, AITrainVideoProcessor
 from streamlit_webrtc.config import VideoHTMLAttributes
 
@@ -48,6 +49,19 @@ class AITrainingPage:
         self.webcam = MyWebCamRTC(AITrainVideoProcessor, key="ai_webcam")
         self.processor = None
 
+        self.static_db_path = os.path.join('database', 'static_command_db.json')
+        self.static_db_path = find_data_file(self.static_db_path)
+
+        self.command_db = MappingDatabase(self.static_db_path)
+        self.undirected_db = UndirectedDatabase(find_data_file('database/undirected_gesture.json'))
+        self.directed_db = DirectedDatabase(find_data_file('database/directed_gesture.json'))
+        self.my_graph = GestureGraph(None, self.undirected_db, self.directed_db)
+        self.gesture_list = self.my_graph.gesture_names()
+        self.chosen_gesture_set = set()
+
+        for item in self.command_db.all():
+            self.chosen_gesture_set.add(item["gesture"])
+
     def render(self):
         self.control_pannel()
         self.body()
@@ -58,13 +72,15 @@ class AITrainingPage:
             st.session_state[self.train_key] = False
 
     def control_pannel(self):
-        self.new_gesture = st.sidebar.text_input("YouTube URL", "")
+        self.new_gesture = st.sidebar.text_input("Your New Gesture", "")
         if st.session_state[self.train_key]:
             st.sidebar.button("Stop Training",
                               on_click=self.disable_training)
         else:
             st.sidebar.button("Start Training",
                               on_click=self.enable_training)
+        if st.session_state[self.train_key]:
+            st.sidebar.info("Press Stop Training when completed.")
 
     def body(self):
         webrtc_ctx = self.webcam.render()
@@ -73,6 +89,24 @@ class AITrainingPage:
             self.start_training(self.processor)
         else:
             self.stop_training(self.processor)
+
+        # gesture mapping
+        st.subheader("Gesture Mapping")
+        st.markdown("Map video controlling commands to your prefered gestures.")
+
+        # dropboxes
+        for item in self.command_db.all():
+            choice = st.selectbox(item["command"].title(), self.gesture_list,
+                                  index=self.gesture_list.index(item['gesture']))
+            if choice == item['gesture']:
+                continue
+            if choice in self.chosen_gesture_set:
+                st.error("This gesture is already mapped to another command.")
+            self.handle_mapping(item["command"], choice)
+
+    def handle_mapping(self, command, gesture):
+        self.command_db.update(command, gesture)
+        st.experimental_rerun()
 
     def enable_training(self):
         if self.new_gesture == "":
@@ -89,6 +123,8 @@ class AITrainingPage:
         st.session_state[self.train_key] = False
 
     def start_training(self, processor):
+        if processor is None:
+            return
         if processor.is_training:
             return
         print("training")
@@ -162,9 +198,14 @@ class ControlVideoPage:
         webrtc_ctx = self.webcam.render()
         while True:
             processor = webrtc_ctx.video_processor
+            # print(webrtc_ctx._state.playing)
             if processor is not None:
                 if st.session_state[self.init_key]:
                     st.session_state[self.init_key] = False
+
+                if processor.ended:
+                    break
+
                 try:
                     result = processor.result_queue.get(timeout=0.3)
                     self.commandHandler.handle_prediction(result.preds, result.keypoints)

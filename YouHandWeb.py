@@ -2,11 +2,14 @@ import streamlit as st
 from st_pages import AITrainingPage, ControlVideoPage
 
 
-st.title('YouHand | Customizable Gesture Recognizer')
+st.title('YouHand | Nguyen Minh Anh')
 
 st.markdown(
     """
     <style>
+    [data-testid="st"][aria-expanded="true"] > div:first-child {
+        margin-top: 50px
+    }
     [data-testid="stSidebar"][aria-expanded="true"] > div:first-child {
         width: 350px
     }
@@ -31,7 +34,7 @@ st.sidebar.subheader('Control Pannel')
 my_modes = ['Train AI', 'Control Video']
 
 appMode = st.sidebar.selectbox('Choose the app mode',
-                               my_modes, index=0)
+                               my_modes, index=1)
 
 
 # control_webcam_key = 'my_webcam_state'
@@ -55,4 +58,5 @@ elif appMode == my_modes[1]:
     st.subheader("Video Controlling")
     control_page = ControlVideoPage()
     control_page.render()
+    st.markdown("If you **cannot connect** to another video, try **turning off** the webcam and **reload** the page.")
 

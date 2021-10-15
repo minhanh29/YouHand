@@ -181,18 +181,18 @@ class RecognizerController():
 
                     # display prediction
                     org = my_points[0]
-                    text_size, base_line = cv2.getTextSize(f"{prediction}", cv2.FONT_HERSHEY_COMPLEX, 1.5, 2)
+                    text_size, base_line = cv2.getTextSize(f"{prediction}", cv2.FONT_HERSHEY_COMPLEX, 1, 2)
                     my_x = org.x - int(text_size[0]/2 + 10)
                     my_y = org.y + 10
                     cv2.rectangle(img, (my_x, my_y), (my_x+text_size[0] + 20, my_y+text_size[1] +base_line + 10),
                                   rec_color, cv2.FILLED)
                     cv2.putText(img, f"{prediction}", (my_x + 10, my_y + 5 + text_size[1]),
-                                cv2.FONT_HERSHEY_COMPLEX, 1.5, (0, 0, 0), 2)
+                                cv2.FONT_HERSHEY_COMPLEX, 1, (0, 0, 0), 2)
 
                 if self.isUpdate:
-                    cv2.putText(img, "AI is learning... Press DONE when complete", (250, 40),
-                                cv2.FONT_HERSHEY_COMPLEX, 1,
-                                (0, 0, 255), 2)
+                    # cv2.putText(img, "Press Stop Training when completed", (30, 60),
+                    #             cv2.FONT_HERSHEY_COMPLEX, 0.8,
+                    #             (0, 0, 255), 2)
 
                     # display new gesture name
                     org = my_points[0]
