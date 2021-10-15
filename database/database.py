@@ -14,6 +14,14 @@ from tinydb import TinyDB, Query
 #         """
 #         # doing nothing
 #         pass
+class DatabaseStorage:
+    undirected = '{"_default": {}}'
+    directed = '{"_default": {}}'
+    command = '{"_default": {}}'
+
+    @classmethod
+    def load_data(cls):
+        pass
 
 
 class UndirectedDatabase:
