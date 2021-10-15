@@ -201,7 +201,6 @@ class ControlVideoPage:
         st.session_state[self.load_key] = True
         st.session_state[self.cmd_key] = False
         st.session_state[self.payload_key] = get_video_id(self.vid_url)
-        st.experimental_rerun()
 
     def enable_cmd(self):
         st.session_state[self.cmd_key] = True
