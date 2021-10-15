@@ -1,5 +1,5 @@
 import cv2
-import math
+# import math
 import numpy as np
 # import pandas as pd
 from sklearn.cluster import MeanShift, KMeans
@@ -62,6 +62,11 @@ class KeyPointList():
         cross_product = vec1[0] * vec2[1] - vec1[1] * vec2[0]
         return 1 if cross_product >= 0 else -1
 
+    def euclidean_dist(self, pt1, pt2):
+        pt1 = np.array(pt1)
+        pt2 = np.array(pt2)
+        return np.linalg.norm(pt1 - pt2)
+
     def get_undirected_feature(self):
         feature = []
 
@@ -69,7 +74,7 @@ class KeyPointList():
         pt1 = self.keypoints[0]
         pt2 = self.keypoints[7]
         base_vec = (pt2.x - pt1.x, pt2.y - pt1.y)
-        base_width = math.dist(pt1.to_list(), pt2.to_list())
+        base_width = self.euclidean_dist(pt1.to_list(), pt2.to_list())
 
         # vector to decide angle direction 0 -> 10
         pt1 = self.keypoints[0]
@@ -92,7 +97,8 @@ class KeyPointList():
             pt2 = self.keypoints[pair[1]]
 
             if pair not in self.width_elim:
-                width = math.dist(pt1.to_list(), pt2.to_list())
+                # width = math.dist(pt1.to_list(), pt2.to_list())
+                width = self.euclidean_dist(pt1.to_list(), pt2.to_list())
                 width = width / base_width
                 feature.append(width)
 
@@ -115,7 +121,8 @@ class KeyPointList():
         # base vector 0 -> 7
         pt1 = self.keypoints[0]
         pt2 = self.keypoints[7]
-        base_width = math.dist(pt1.to_list(), pt2.to_list())
+        # base_width = math.dist(pt1.to_list(), pt2.to_list())
+        base_width = self.euclidean_dist(pt1.to_list(), pt2.to_list())
 
         # vector to decide angle direction 0 -> 10
         base_y = np.array([0, -1])
@@ -133,7 +140,8 @@ class KeyPointList():
             pt2 = self.keypoints[pair[1]]
 
             if pair not in self.width_elim:
-                width = math.dist(pt1.to_list(), pt2.to_list())
+                # width = math.dist(pt1.to_list(), pt2.to_list())
+                width = self.euclidean_dist(pt1.to_list(), pt2.to_list())
                 width = width / base_width
                 feature.append(width)
 
@@ -159,7 +167,8 @@ class KeyPointList():
         # base vector 0 -> 7
         pt1 = self.keypoints[0]
         pt2 = self.keypoints[7]
-        base_width = math.dist(pt1.to_list(), pt2.to_list())
+        # base_width = math.dist(pt1.to_list(), pt2.to_list())
+        base_width = self.euclidean_dist(pt1.to_list(), pt2.to_list())
 
         # vector to decide angle direction 0 -> 10
         base_y = np.array([0, -1])
@@ -172,7 +181,8 @@ class KeyPointList():
         prev_pt = prev_keypoints[0]
 
         vec = np.array([current_pt.x - prev_pt.x, current_pt.y - prev_pt.y])
-        width = math.dist(current_pt.to_list(), prev_pt.to_list())
+        # width = math.dist(current_pt.to_list(), prev_pt.to_list())
+        width = self.euclidean_dist(current_pt.to_list(), prev_pt.to_list())
         width = width / base_width
         feature.append(width)
 
