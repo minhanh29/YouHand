@@ -58,5 +58,5 @@ elif appMode == my_modes[1]:
     st.subheader("Video Controlling")
     control_page = ControlVideoPage()
     control_page.render()
-    st.markdown("If you **cannot connect** to another video, try **turning off** the webcam and **reload** the page.")
+    st.markdown("If you **cannot connect** to another video, try **turning off** the webcam and **reloading** the page.")
 
