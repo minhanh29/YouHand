@@ -144,7 +144,7 @@ class ControlVideoPage:
         self.commandHandler = CommandHandler(self.command_db, self)
 
     def register_state(self):
-        if self.init_key not in st.init_key:
+        if self.init_key not in st.session_state:
             st.session_state[self.init_key] = True
         if self.load_key not in st.session_state:
             st.session_state[self.load_key] = False
