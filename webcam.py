@@ -2,32 +2,51 @@ import av
 import cv2
 import time
 import queue
-from typing import List, NamedTuple
+from typing import NamedTuple
 import streamlit as st
 from ai.recognizer import RecognizerController
 from streamlit_webrtc import (
-    AudioProcessorBase,
     RTCConfiguration,
     VideoProcessorBase,
     WebRtcMode,
     webrtc_streamer,
 )
 from streamlit_webrtc.config import VideoHTMLAttributes
-from database.database import MappingDatabase
-
-import os
-import numpy as np
 
 
 class AITrainVideoProcessor(VideoProcessorBase):
+    start_training: bool
+    stop_training: bool
+    is_training: bool
+    new_gesture: str
+
     def __init__(self):
         self.controller = RecognizerController()
+        self.start_training = False
+        self.stop_training = False
+        self.is_training = True
+        self.new_gesture = "new_gesture"
         print("create")
 
     def recv(self, frame: av.VideoFrame):
         timer = cv2.getTickCount()
         img = frame.to_ndarray(format="bgr24")
         img = cv2.flip(img, 1)
+
+        if self.start_training:
+            print("start train")
+            self.controller.new_gesture = self.new_gesture.lower()
+            self.controller.isPredict = False
+            self.controller.isUpdate = True
+            self.start_training = False
+            self.is_training = True
+
+        if self.stop_training:
+            self.stop_training = False
+            self.is_training = False
+            self.controller.isPredict = True
+            message = self.controller.save_gesture()
+            print("Mess", message)
 
         # controller = st.session_state[self.controller_key]
         img, data = self.controller.detect_keypoints(img)
@@ -110,9 +129,10 @@ class ControlVideoProcessor(VideoProcessorBase):
 
 
 class MyWebCamRTC:
-    def __init__(self, processor, vid_config=None):
+    def __init__(self, processor, key, vid_config=None):
         self.config = RTCConfiguration({"iceServers": [{"urls": ["stun:stun.l.google.com:19302"]}]})
         self.processor = processor
+        self.key = key
         if vid_config:
             self.vid_config = vid_config
         else:
@@ -122,7 +142,7 @@ class MyWebCamRTC:
 
     def render(self):
         return webrtc_streamer(
-            key="my_webcam",
+            key=self.key,
             mode=WebRtcMode.SENDRECV,
             rtc_configuration=self.config,
             video_processor_factory=self.processor,

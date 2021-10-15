@@ -1,13 +1,11 @@
 import streamlit as st
 import os
+import re
 import queue
 import sys
-import cv2
 import numpy as np
 import time
 from urllib.parse import urlparse, parse_qs
-from PIL import Image
-from ai.recognizer import RecognizerController
 from database.database import MappingDatabase
 from webcam import MyWebCamRTC, ControlVideoProcessor, AITrainVideoProcessor
 from streamlit_webrtc.config import VideoHTMLAttributes
@@ -47,7 +45,8 @@ class AITrainingPage:
         self.new_gesture = ""
         self.register_state()
 
-        self.webcam = MyWebCamRTC(AITrainVideoProcessor)
+        self.webcam = MyWebCamRTC(AITrainVideoProcessor, key="ai_webcam")
+        self.processor = None
 
     def render(self):
         self.control_pannel()
@@ -68,16 +67,20 @@ class AITrainingPage:
                               on_click=self.enable_training)
 
     def body(self):
-        self.webcam.render()
-
+        webrtc_ctx = self.webcam.render()
+        self.processor = webrtc_ctx.video_processor
         if st.session_state[self.train_key]:
-            self.start_training()
+            self.start_training(self.processor)
         else:
-            self.stop_training()
+            self.stop_training(self.processor)
 
     def enable_training(self):
         if self.new_gesture == "":
             st.sidebar.error("Please enter your gesture name before training.")
+            return
+
+        if self.processor is None:
+            st.sidebar.error("Please open your webcam before training.")
             return
 
         st.session_state[self.train_key] = True
@@ -85,11 +88,21 @@ class AITrainingPage:
     def disable_training(self):
         st.session_state[self.train_key] = False
 
-    def start_training(self):
+    def start_training(self, processor):
+        if processor.is_training:
+            return
         print("training")
+        processor.new_gesture = self.new_gesture
+        processor.start_training = True
 
-    def stop_training(self):
+    def stop_training(self, processor):
+        if processor is None:
+            return
+        if not processor.is_training:
+            return
+
         print("Stop training")
+        processor.stop_training = True
 
 
 class ControlVideoPage:
@@ -120,7 +133,9 @@ class ControlVideoPage:
                                                   "margin-right": "auto"
                                                   }
         )
-        self.webcam = MyWebCamRTC(ControlVideoProcessor, vid_config)
+        self.webcam = MyWebCamRTC(ControlVideoProcessor,
+                                  key="control_webcam",
+                                  vid_config=vid_config)
         self.static_db_path = os.path.join('database', 'static_command_db.json')
         self.static_db_path = find_data_file(self.static_db_path)
 
@@ -180,8 +195,11 @@ class ControlVideoPage:
             self.vid_component(key=self.component_key)
 
     def connect_youtube(self):
-        if self.vid_id == "":
-            st.sidebar.error("Please enter your gesture name before training.")
+        # validate url
+        result = re.fullmatch("^((?:https?:)?\/\/)?((?:www|m)\.)?((?:youtube\.com|youtu.be))(\/(?:[\w\-]+\?v=|embed\/|v\/)?)([\w\-]+)(\S+)?$", self.vid_url)
+
+        if result is None:
+            st.sidebar.error("Invalid YouTube video URL. Please try again.")
             return
         st.session_state[self.load_key] = True
         st.session_state[self.cmd_key] = False

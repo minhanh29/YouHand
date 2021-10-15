@@ -31,7 +31,7 @@ st.sidebar.subheader('Control Pannel')
 my_modes = ['Train AI', 'Control Video']
 
 appMode = st.sidebar.selectbox('Choose the app mode',
-                               my_modes, index=1)
+                               my_modes, index=0)
 
 
 # control_webcam_key = 'my_webcam_state'
@@ -55,20 +55,4 @@ elif appMode == my_modes[1]:
     st.subheader("Video Controlling")
     control_page = ControlVideoPage()
     control_page.render()
-    # test = st.sidebar.button("test")
-    # parent_dir = os.path.dirname(os.path.abspath(__file__))
-    # build_dir = os.path.join(parent_dir)
-    # my_component = st.components.v1.declare_component("test", path=build_dir)
-    # if test:
-    #     my_component(ytb_cmd="0", key="1")
-    # else:
-    #     my_component(key="1")
 
-    # HtmlFile = open("video_component.html", 'r', encoding='utf-8')
-    # source_code = HtmlFile.read()
-    # if test:
-    #     print("test")
-    #     source_code = source_code.replace("//my_func", "playVideo()")
-    # my_component = st.components.v1.html(source_code, 640, 400)
-    # result = my_component(my_args="Minh Anh")
-    # print(result)

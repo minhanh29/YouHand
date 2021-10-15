@@ -1,10 +1,25 @@
 from tinydb import TinyDB, Query
-import os
+# from tinydb.storages import JSONStorage, Storage
+# from tinydb.middlewares import CachingMiddleware
+
+
+# class MyMiddleware(CachingMiddleware):
+#     def __init__(self, storage_cls):
+#         # Initialize the parent constructor
+#         super().__init__(storage_cls)
+
+#     def flush(self):
+#         """
+#         Flush all unwritten data to disk.
+#         """
+#         # doing nothing
+#         pass
 
 
 class UndirectedDatabase:
     def __init__(self, database_path):
         self.db = TinyDB(database_path)
+        # self.db = TinyDB(database_path, storage=MyMiddleware(JSONStorage))
 
     # change database
     def change_db(self, database_path):
@@ -124,9 +139,11 @@ class DirectedDatabase:
     def all(self):
         return self.db.all()
 
+
 class DynamicDatabase:
     def __init__(self, database_path):
         self.db = TinyDB(database_path)
+        # self.db = TinyDB(database_path, storage=MyMiddleware(JSONStorage))
 
     # change database
     def change_db(self, database_path):
@@ -183,6 +200,7 @@ class DynamicDatabase:
 class MappingDatabase:
     def __init__(self, database_path):
         self.db = TinyDB(database_path)
+        # self.db = TinyDB(database_path, storage=MyMiddleware(JSONStorage))
 
     # change database
     def change_db(self, database_path):
