@@ -4,16 +4,25 @@ import io
 from tinydb import TinyDB, Query
 from tinydb.storages import Storage
 from typing import Dict, Any, Optional
-# from tinydb.middlewares import CachingMiddleware
 
 
 class MyJSONStorage(Storage):
+    last_session_id = ""
     undir_inited = False
     dir_inited = False
     com_inited = False
     undir_db = ""
     dir_db = ""
     com_db = ""
+
+    @classmethod
+    def reset_state(cls):
+        cls.undir_inited = False
+        cls.dir_inited = False
+        cls.com_inited = False
+        cls.undir_db = ""
+        cls.dir_db = ""
+        cls.com_db = ""
 
     def __init__(self, path: str, create_dirs=False,
                  encoding=None, access_mode='r+', **kwargs):

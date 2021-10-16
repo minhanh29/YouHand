@@ -7,9 +7,20 @@ import numpy as np
 import time
 from ai.graph_util import GestureGraph
 from urllib.parse import urlparse, parse_qs
-from database.database import MappingDatabase, UndirectedDatabase, DirectedDatabase
+from database.database import MappingDatabase, UndirectedDatabase, DirectedDatabase, MyJSONStorage
 from webcam import MyWebCamRTC, ControlVideoProcessor, AITrainVideoProcessor
 from streamlit_webrtc.config import VideoHTMLAttributes
+from streamlit.report_thread import get_report_ctx
+
+
+def _get_session():
+    import streamlit.report_thread as ReportThread
+    from streamlit.server.server import Server
+    session_id = get_report_ctx().session_id
+    session_info = Server.get_current()._get_session_info(session_id)
+    if session_info is None:
+        raise RuntimeError("Couldn't get your Streamlit Session object.")
+    return session_info.session
 
 
 def find_data_file(filename):
@@ -57,6 +68,13 @@ class AITrainingPage:
         self.directed_db = DirectedDatabase(find_data_file('database/directed_gesture.json'))
         self.my_graph = GestureGraph(None, self.undirected_db, self.directed_db)
         self.gesture_list = self.my_graph.gesture_names()
+
+        # reset database on reload
+        current_session_id = str(_get_session().id)
+        if current_session_id != MyJSONStorage.last_session_id:
+            MyJSONStorage.reset_state()
+            MyJSONStorage.last_session_id = current_session_id
+
 
     def render(self):
         self.control_pannel()
