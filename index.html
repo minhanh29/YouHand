@@ -5,7 +5,7 @@
 		<title>Youtube API test</title>
 	</head>
 
-	<body>
+	<body id="my-container">
 		<!-- 1. The <iframe> (and video player) will replace this <div> tag. -->
 		<div class="vid-container">
 			<div id="player"></div>
@@ -24,14 +24,16 @@
 		</script>
 
 		<style>
+		body {
+			width: 100%;
+		}
+
 		/* process bar */
 		#my_bar {
-			margin-left: 10px;
 			margin-right: 0;
 			display: flex;
 				flex-direction: column;
 			align-items: center;
-			float: right;
 		}
 
 		#my_bar > p {
@@ -42,36 +44,36 @@
 			display: block;
 			width: 15px;
 			height: 300px;
-			margin-left: 10px;
 			background-color: #00c6ed;
 			border: solid 3px #008da8
 		}
 
 		#bar {
-			width: 100%;
+			width: 15px;
 			height: 0%;
 			background-color: white;
 		}
 
 		.vid-container {
-			width: 400px;
-			float: left;
-			margin-right: 30px;
+			display: block;
+			width: 80%;
+			float:left;
 		}
 		</style>
 	</body>
 	<script>
-		let cam = document.getElementsByClassName("element-container")
-		console.log(cam)
 		// 3. This function creates an <iframe> (and YouTube player)
 		//    after the API code downloads.
 		let player = null, elem, volElem, vid_id = 'o7TyVt4QWAw';
+		let w = Math.round(window.innerWidth * 0.85);
+		let h = Math.round(w * 370/610)
+
 		let isFullScreen = false;
 		let delayCount = (new Date()).getTime();
 		function onYouTubeIframeAPIReady() {
 			player = new YT.Player('player', {
-				height: '370',
-				width: '610',
+				height: h.toString(),
+				width: w.toString(),
 				videoId: vid_id,
 				playerVars: {
 					'playsinline': 1
@@ -87,6 +89,9 @@
 		function onPlayerReady(event) {
 			// event.target.playVideo();
 			elem = document.getElementById('player')
+			elem.style.width = w;
+			volContainer = document.getElementById('bar-container')
+			volContainer.style.height = Math.floor(h * 0.9);
 			volElem = document.getElementById('bar')
 			volElem.style.height = (100 - player.getVolume()) + '%';
 		}
@@ -176,7 +181,7 @@
 			{
 				isStreamlitMessage: true,
 				type: "streamlit:setFrameHeight",
-				height: 400,
+				height: h,
 			},
 			"*"
 		)
@@ -185,7 +190,7 @@
 			{
 				isStreamlitMessage: true,
 				type: "streamlit:setFrameWidth",
-				width: 640,
+				width: w,
 			},
 			"*"
 		)
