@@ -57,10 +57,6 @@ class AITrainingPage:
         self.directed_db = DirectedDatabase(find_data_file('database/directed_gesture.json'))
         self.my_graph = GestureGraph(None, self.undirected_db, self.directed_db)
         self.gesture_list = self.my_graph.gesture_names()
-        self.chosen_gesture_set = set()
-
-        for item in self.command_db.all():
-            self.chosen_gesture_set.add(item["gesture"])
 
     def render(self):
         self.control_pannel()
@@ -92,16 +88,22 @@ class AITrainingPage:
 
         # gesture mapping
         st.subheader("Gesture Mapping")
-        st.markdown("Map video controlling commands to your prefered gestures.")
+        st.markdown("Map video controlling commands to your prefered gestures. Please **turn off** the webcam above before mapping.")
 
         # dropboxes
+        chosen_gesture_set = set()
+        for item in self.command_db.all():
+            chosen_gesture_set.add(item["gesture"])
+
         for item in self.command_db.all():
             choice = st.selectbox(item["command"].title(), self.gesture_list,
                                   index=self.gesture_list.index(item['gesture']))
+            choice = choice.lower()
             if choice == item['gesture']:
                 continue
-            if choice in self.chosen_gesture_set:
+            if choice in chosen_gesture_set:
                 st.error("This gesture is already mapped to another command.")
+                continue
             self.handle_mapping(item["command"], choice)
 
     def handle_mapping(self, command, gesture):
@@ -127,7 +129,6 @@ class AITrainingPage:
             return
         if processor.is_training:
             return
-        print("training")
         processor.new_gesture = self.new_gesture
         processor.start_training = True
 
@@ -137,7 +138,6 @@ class AITrainingPage:
         if not processor.is_training:
             return
 
-        print("Stop training")
         processor.stop_training = True
 
 
@@ -195,6 +195,7 @@ class ControlVideoPage:
     def render(self):
         self.control_pannel()
         self.body()
+        st.markdown("**Turn on** the webcam below to start controlling video.")
         webrtc_ctx = self.webcam.render()
         while True:
             processor = webrtc_ctx.video_processor

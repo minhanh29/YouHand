@@ -66,6 +66,8 @@
 		// 3. This function creates an <iframe> (and YouTube player)
 		//    after the API code downloads.
 		let player = null, elem, volElem, vid_id = 'o7TyVt4QWAw';
+		let isFullScreen = false;
+		let delayCount = (new Date()).getTime();
 		function onYouTubeIframeAPIReady() {
 			player = new YT.Player('player', {
 				height: '370',
@@ -141,13 +143,13 @@
 
 		/* View in fullscreen */
 		function openFullscreen() {
-		  if (elem.requestFullscreen) {
-			elem.requestFullscreen();
-		  } else if (elem.webkitRequestFullscreen) { /* Safari */
-			elem.webkitRequestFullscreen();
-		  } else if (elem.msRequestFullscreen) { /* IE11 */
-			elem.msRequestFullscreen();
-		  }
+			if (elem.requestFullscreen) {
+				elem.requestFullscreen();
+			} else if (elem.webkitRequestFullscreen) { /* Safari */
+				elem.webkitRequestFullscreen();
+			} else if (elem.msRequestFullscreen) { /* IE11 */
+				elem.msRequestFullscreen();
+			}
 		}
 
 		/* Close fullscreen */
@@ -223,9 +225,30 @@
 						decreaseVol();
 						break;
 					case "6":
-						//fullscreen();
+						let current = (new Date()).getTime();
+						if (current - delayCount > 1000) {
+							delayCount = current;
+						}
+						else {
+							break
+						}
+
+						try {
+							if (document.fullscreenElement === null) {
+								openFullscreen();
+							} else {
+								closeFullscreen();
+							}
+						} catch(e) {
+							alert("Automatic fullscreen is limited. Please manually interact with the video and try again.")
+						}
 						break;
 					case "7":
+						let ad_button = document.querySelector('.ytp-ad-skip-button');
+						if (ad_button === null) {
+							break
+						}
+						ad_button.click();
 						break;
 					default:
 						break;
