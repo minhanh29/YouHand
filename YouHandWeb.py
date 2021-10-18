@@ -46,7 +46,7 @@ if appMode == my_modes[0]:
     trainingPage = AITrainingPage()
     trainingPage.render()
 
-    st.markdown("This web app is just a demo version of YouHand. Please download desktop app version to get full features.")
+    # st.markdown("This web app is just a demo version of YouHand. Please download desktop app version to get full features.")
 
 elif appMode == my_modes[1]:
     st.subheader("Video Controlling")
@@ -59,3 +59,4 @@ elif appMode == my_modes[1]:
     st.markdown("Go to **AI Training** section to create your own gestures.")
     st.image(Image.open("media/built_in_gestures.png"))
 
+st.sidebar.markdown("Get desktop app version to have better experience. [Download here](https://minhanhng.com/youhand)")
