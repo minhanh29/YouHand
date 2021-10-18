@@ -20,6 +20,7 @@ class AITrainVideoProcessor(VideoProcessorBase):
     stop_training: bool
     is_training: bool
     new_gesture: str
+    session_id: str
 
     def __init__(self):
         self.controller = RecognizerController()
@@ -27,11 +28,16 @@ class AITrainVideoProcessor(VideoProcessorBase):
         self.stop_training = False
         self.is_training = True
         self.is_count_down = False
+        self.session_id = None
         self.new_gesture = "new_gesture"
         self.startTime = time.time()
         print("create")
 
     def show_count_down(self, img):
+        if self.session_id is not None and self.session_id != "got":
+            self.controller = RecognizerController(database_dir=f"../temp/{self.session_id}")
+            self.session_id = "got"
+
         duration = time.time() - self.startTime
         if duration > 3:
             self.controller.new_gesture = self.new_gesture.lower()
@@ -82,13 +88,19 @@ class Detection(NamedTuple):
 class ControlVideoProcessor(VideoProcessorBase):
     result_queue: "queue.Queue[Detection]"
     ended: bool
+    session_id: str
 
     def __init__(self):
         self.controller = RecognizerController()
         self.result_queue = queue.Queue()
         self.ended = False
+        self.session_id = None
 
     def recv(self, frame: av.VideoFrame):
+        if self.session_id is not None and self.session_id != "got":
+            self.controller = RecognizerController(database_dir=f"../temp/{self.session_id}")
+            self.session_id = "got"
+
         timer = cv2.getTickCount()
         img = frame.to_ndarray(format="bgr24")
         img = cv2.flip(img, 1)

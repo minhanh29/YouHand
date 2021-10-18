@@ -1,6 +1,7 @@
 import streamlit as st
 from st_pages import AITrainingPage, ControlVideoPage
 from PIL import Image
+from session_manager import clean_storage
 
 
 st.title('YouHand | Nguyen Minh Anh')
@@ -23,10 +24,11 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+clean_storage()
+
 rerun_key = "rerun_key"
 if rerun_key not in st.session_state:
     st.session_state[rerun_key] = True
-    print("first ru run")
     st.experimental_rerun()
 
 st.sidebar.title("YouHand")

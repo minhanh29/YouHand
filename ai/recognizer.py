@@ -25,7 +25,7 @@ class RecognizerController():
     STATIC = 0
     DYNAMIC = 1
 
-    def __init__(self, database_path='../database/gestures_db.json',
+    def __init__(self, database_dir='../database',
                  classifier='linear', mode=0):
         # config
         self.new_gesture = 'new_gesture'
@@ -35,8 +35,8 @@ class RecognizerController():
         #     self.undirected_db = UndirectedDatabase('database/undirected_dynamic_gesture.json')
         #     self.directed_db = DirectedDatabase('database/directed_dynamic_gesture.json')
         if mode == RecognizerController.STATIC:
-            self.undirected_db = UndirectedDatabase(find_data_file('../database/undirected_gesture.json'))
-            self.directed_db = DirectedDatabase(find_data_file('../database/directed_gesture.json'))
+            self.undirected_db = UndirectedDatabase(find_data_file(f'{database_dir}/undirected_gesture.json'))
+            self.directed_db = DirectedDatabase(find_data_file(f'{database_dir}/directed_gesture.json'))
         # self.dynamic_db = DynamicDatabase('database/dynamic_gesture.json')
 
         self.isPredict = True

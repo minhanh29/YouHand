@@ -7,10 +7,11 @@ import numpy as np
 import time
 from ai.graph_util import GestureGraph
 from urllib.parse import urlparse, parse_qs
-from database.database import MappingDatabase, UndirectedDatabase, DirectedDatabase, MyJSONStorage
+from database.database import MappingDatabase, UndirectedDatabase, DirectedDatabase
 from webcam import MyWebCamRTC, ControlVideoProcessor, AITrainVideoProcessor
 from streamlit_webrtc.config import VideoHTMLAttributes
 from streamlit.report_thread import get_report_ctx
+from session_manager import check_storage, create_storage
 
 
 def _get_session():
@@ -57,23 +58,28 @@ class AITrainingPage:
         self.new_gesture = ""
         self.register_state()
 
+        current_session_id = str(_get_session().id)
+        if not check_storage(current_session_id):
+            create_storage(current_session_id)
+        database_dir = f"./temp/{current_session_id}"
+
         self.webcam = MyWebCamRTC(AITrainVideoProcessor, key="ai_webcam")
         self.processor = None
 
-        self.static_db_path = os.path.join('database', 'static_command_db.json')
+        self.static_db_path = os.path.join(database_dir, 'static_command_db.json')
         self.static_db_path = find_data_file(self.static_db_path)
 
         self.command_db = MappingDatabase(self.static_db_path)
-        self.undirected_db = UndirectedDatabase(find_data_file('database/undirected_gesture.json'))
-        self.directed_db = DirectedDatabase(find_data_file('database/directed_gesture.json'))
+        self.undirected_db = UndirectedDatabase(find_data_file(f'{database_dir}/undirected_gesture.json'))
+        self.directed_db = DirectedDatabase(find_data_file(f'{database_dir}/directed_gesture.json'))
         self.my_graph = GestureGraph(None, self.undirected_db, self.directed_db)
         self.gesture_list = self.my_graph.gesture_names()
 
         # reset database on reload
-        current_session_id = str(_get_session().id)
-        if current_session_id != MyJSONStorage.last_session_id:
-            MyJSONStorage.reset_state()
-            MyJSONStorage.last_session_id = current_session_id
+        # current_session_id = str(_get_session().id)
+        # if current_session_id != MyJSONStorage.last_session_id:
+        #     MyJSONStorage.reset_state()
+        #     MyJSONStorage.last_session_id = current_session_id
 
 
     def render(self):
@@ -99,6 +105,10 @@ class AITrainingPage:
     def body(self):
         webrtc_ctx = self.webcam.render()
         self.processor = webrtc_ctx.video_processor
+        if self.processor is not None:
+            if self.processor.session_id is None:
+                self.processor.session_id = str(_get_session().id)
+
         if st.session_state[self.train_key]:
             self.start_training(self.processor)
         else:
@@ -191,7 +201,13 @@ class ControlVideoPage:
         self.webcam = MyWebCamRTC(ControlVideoProcessor,
                                   key="control_webcam",
                                   vid_config=vid_config)
-        self.static_db_path = os.path.join('database', 'static_command_db.json')
+
+        current_session_id = str(_get_session().id)
+        if not check_storage(current_session_id):
+            create_storage(current_session_id)
+        database_dir = f"./temp/{current_session_id}"
+
+        self.static_db_path = os.path.join(database_dir, 'static_command_db.json')
         self.static_db_path = find_data_file(self.static_db_path)
 
         self.command_db = MappingDatabase(self.static_db_path)
@@ -219,6 +235,9 @@ class ControlVideoPage:
             processor = webrtc_ctx.video_processor
             # print(webrtc_ctx._state.playing)
             if processor is not None:
+                if processor.session_id is None:
+                    processor.session_id = str(_get_session().id)
+
                 if st.session_state[self.init_key]:
                     st.session_state[self.init_key] = False
 

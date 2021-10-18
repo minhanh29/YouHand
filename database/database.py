@@ -158,8 +158,8 @@ class MyJSONStorage(Storage):
 
 class UndirectedDatabase:
     def __init__(self, database_path):
-        # self.db = TinyDB(database_path)
-        self.db = TinyDB(database_path, storage=MyJSONStorage)
+        self.db = TinyDB(database_path)
+        # self.db = TinyDB(database_path, storage=MyJSONStorage)
 
     # change database
     def change_db(self, database_path):
@@ -216,8 +216,8 @@ class UndirectedDatabase:
 
 class DirectedDatabase:
     def __init__(self, database_path):
-        # self.db = TinyDB(database_path)
-        self.db = TinyDB(database_path, storage=MyJSONStorage)
+        self.db = TinyDB(database_path)
+        # self.db = TinyDB(database_path, storage=MyJSONStorage)
 
     # change database
     def change_db(self, database_path):
@@ -283,8 +283,8 @@ class DirectedDatabase:
 
 class DynamicDatabase:
     def __init__(self, database_path):
-        # self.db = TinyDB(database_path)
-        self.db = TinyDB(database_path, storage=MyJSONStorage)
+        self.db = TinyDB(database_path)
+        # self.db = TinyDB(database_path, storage=MyJSONStorage)
 
     # change database
     def change_db(self, database_path):
@@ -340,8 +340,8 @@ class DynamicDatabase:
 
 class MappingDatabase:
     def __init__(self, database_path):
-        # self.db = TinyDB(database_path)
-        self.db = TinyDB(database_path, storage=MyJSONStorage)
+        self.db = TinyDB(database_path)
+        # self.db = TinyDB(database_path, storage=MyJSONStorage)
 
     # change database
     def change_db(self, database_path):
