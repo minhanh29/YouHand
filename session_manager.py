@@ -41,7 +41,7 @@ def clean_storage():
             start_time = f.read()
 
         start_time = int(start_time)
-        if int(time.time() - start_time) < 900:
+        if int(time.time() - start_time) < 420:
             continue
 
         # delete data
