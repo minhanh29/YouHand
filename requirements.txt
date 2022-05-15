@@ -1,10 +1,10 @@
-streamlit
-streamlit-webrtc
-mediapipe
-scikit-learn
-selenium
+streamlit==1.0.0
+streamlit-webrtc==0.30.0
+mediapipe==0.8.7.2
+scikit-learn==0.24.2
+selenium==3.141.0
 pillow
 pandas
-scipy
+scipy==4.5.1
 tinydb
 ffmpeg
