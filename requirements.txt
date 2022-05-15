@@ -6,6 +6,6 @@ scikit-learn==0.24.2
 selenium==3.141.0
 pillow
 pandas
-scipy==4.5.1
-tinydb
+scipy
+tinydb==4.5.1
 ffmpeg
