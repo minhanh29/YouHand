@@ -9,3 +9,4 @@ pandas
 scipy
 tinydb==4.5.1
 ffmpeg
+click==7.1.2
